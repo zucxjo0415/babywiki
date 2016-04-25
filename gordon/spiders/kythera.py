@@ -28,49 +28,49 @@ class KytheraSpider(scrapy.Spider):
 	osmium = {}				# dictionary for collecting # hi-relevance links
 	crawled = start_urls	# list of crawled urls
 	
-	idf = {}
-	svecFilename = 'C:\cygwin64\home\Zhu Feng\glove.vecs'
-	svecdict = {}
-	svecfile = None
-	mode = ''
+	# idf = {}
+	# svecFilename = 'C:\cygwin64\home\Zhu Feng\glove.vecs'
+	# svecdict = {}
+	# svecfile = None
+	# mode = ''
 	
-	def __init__(self, query='tea', topVectRaw='topvect.csv', mode='tf'):
-		self.mode = mode
+	def __init__(self, query='tea', topVectRaw='topvect.csv'):
+		# self.mode = mode
 		self.start_urls = list(search(query, stop=20))
         
-		if mode =='tfidf':
-			with open('..\iphigeni\webidf.csv') as infile:
-				vectRead = reader(infile)
-				next(vectRead)
-				for line in vectRead: self.idf[line[0]] = float(line[1])
-		if mode == 'svec':
-			with open(self.svecFilename) as infile:
-				k = 1
-				for line in infile:
-					self.svecdict[line.split()[0]] = k
-					k += 1
-			self.svecfile = linereader.dopen(self.svecFilename)
+		# if mode =='tfidf':
+			# with open('..\iphigeni\webidf.csv') as infile:
+				# vectRead = reader(infile)
+				# next(vectRead)
+				# for line in vectRead: self.idf[line[0]] = float(line[1])
+		# if mode == 'svec':
+			# with open(self.svecFilename) as infile:
+				# k = 1
+				# for line in infile:
+					# self.svecdict[line.split()[0]] = k
+					# k += 1
+			# self.svecfile = linereader.dopen(self.svecFilename)
 			
 		# Use the veblen spider to generate topVectRaw
 		with open(topVectRaw) as infile: 
 			vectRead = reader(infile)
 			next(vectRead)
-			if mode in ['tf', 'tfidf']:
-				for line in vectRead:
-					try: self.topic[line[1]] += int(line[0])
-					except KeyError: self.topic[line[1]] = int(line[0])
+			# if mode in ['tf', 'tfidf']:
+			for line in vectRead:
+				try: self.topic[line[1]] += int(line[0])
+				except KeyError: self.topic[line[1]] = int(line[0])
 				#self.topic = {k: log(v) for k, v in self.topic.items()}
-				if mode == 'tfidf':
-					for k in self.topic.keys():
-						try: self.topic[k] /= self.idf[k]
-						except KeyError: continue
-			else: 
-				self.topic = [0.0] * 300
-				for line in vectRead:
-					try: 
-						svec = get_svec(self.svecfile, self.svecdict, line[1])
-						self.topic += [x * int(line[0]) for x in svec]
-					except KeyError: continue
+				# if mode == 'tfidf':
+					# for k in self.topic.keys():
+						# try: self.topic[k] /= self.idf[k]
+						# except KeyError: continue
+			# else: 
+				# self.topic = [0.0] * 300
+				# for line in vectRead:
+					# try: 
+						# svec = get_svec(self.svecfile, self.svecdict, line[1])
+						# self.topic += [x * int(line[0]) for x in svec]
+					# except KeyError: continue
 
 	def parse(self, response):
 		"""
@@ -94,26 +94,26 @@ class KytheraSpider(scrapy.Spider):
 		try: title = clean_html(response.xpath('//title').extract()[0])
 		except IndexError: title = ''
 		doc = ' '.join([doc, title, title, title])
-		if self.mode == 'tf': parentScore = self.sim(self.topic, vectorize_string(doc))
-		elif self.mode == 'tfidf': parentScore = self.sim(self.topic, 
-				vectorize_string_tfidf(doc, self.idf))
-		else: parentScore = self.sim2(self.topic, 
-				vectorize_string_svec(doc, self.svecfile, self.svecdict))
+		parentScore = self.sim(self.topic, vectorize_string(doc))
+		# elif self.mode == 'tfidf': parentScore = self.sim(self.topic, 
+				# vectorize_string_tfidf(doc, self.idf))
+		# else: parentScore = self.sim2(self.topic, 
+				# vectorize_string_svec(doc, self.svecfile, self.svecdict))
 		
 		# modify topic vector if we hit an especially relevant page
 		if parentScore > self.hiThresh:
 			token_counts = vectorize_string(doc)
 			for word in token_counts.keys():
-				if self.mode in ['tf', 'tfidf']:
-					toadd = token_counts[word]
-					if self.mode == 'tfidf':
-						try: toadd /= self.idf[word]
-						except KeyError: toadd /= 1
-					try: self.topic[word] += toadd
-					except KeyError: self.topic[word] = toadd
-				else:
-					try: self.topic += get_svecfile(self.svecfile, self.svecdict, word)
-					except KeyError: continue
+				# if self.mode in ['tf', 'tfidf']:
+				toadd = token_counts[word]
+					# if self.mode == 'tfidf':
+						# try: toadd /= self.idf[word]
+						# except KeyError: toadd /= 1
+				try: self.topic[word] += toadd
+				except KeyError: self.topic[word] = toadd
+				# else:
+					# try: self.topic += get_svecfile(self.svecfile, self.svecdict, word)
+					# except KeyError: continue
 		
 		for link in response.xpath("//a"):
 			try: url = response.urljoin(link.xpath('@href').extract()[0])
@@ -133,10 +133,10 @@ class KytheraSpider(scrapy.Spider):
 			try: 
 				linktext = link.xpath('text()').extract()[0]
 				try: 
-					if self.mode == 'tf': anchorScore = self.sim(self.topic, vectorize_string(linktext))
-					elif self.mode == 'tfidf': anchorScore = self.sim(self.topic, vectorize_string_tfidf(linktext, self.idf))
-					else: anchorScore = self.sim2(self.topic, 
-							vectorize_string_svec(linktext, self.svecfile, self.svecdict))
+					anchorScore = self.sim(self.topic, vectorize_string(linktext))
+					# elif self.mode == 'tfidf': anchorScore = self.sim(self.topic, vectorize_string_tfidf(linktext, self.idf))
+					# else: anchorScore = self.sim2(self.topic, 
+							# vectorize_string_svec(linktext, self.svecfile, self.svecdict))
 				except ZeroDivisionError: anchorScore = 0.0
 			except IndexError: anchorScore = 0.0
 			
