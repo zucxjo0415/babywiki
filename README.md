@@ -13,7 +13,7 @@ pip install -r requirements.txt
 More specifically, the crawler only requires NLTK and Scrapy, and the topic modeling (which is integrated with the topic model visualization) is what requires NumPy and Django. Do note that the topic model visualization requires an older version of Django (1.2.4.) 
 
 ## Crawling
-Once you have all the dependencies, you may crawl a collection of documents by (going to the project directory?) and typing
+Once you have all the dependencies, you may crawl a collection of documents by going to the package directory (i.e. where README.md is located) and typing
 
 scrapy crawl veblen -a query="your query here" -o topvect.csv
 
