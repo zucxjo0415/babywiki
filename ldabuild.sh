@@ -1,4 +1,4 @@
-cd basicbrowser
+cd BasicBrowser
 python manage.py syncdb
 mv tmv_db ..
 cd ..
