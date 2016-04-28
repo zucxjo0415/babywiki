@@ -10,7 +10,9 @@ This package is written in Python. The various libraries and dependencies it nee
 
 pip install -r requirements.txt
 
-More specifically, the crawler only requires NLTK and Scrapy, and the topic modeling (which is integrated with the topic model visualization) is what requires NumPy and Django. Do note that the topic model visualization requires an older version of Django (1.2.4.) 
+More specifically, the crawler only requires NLTK and Scrapy, and the topic modeling (which is integrated with the topic model visualization) is what requires NumPy and Django. Do note that the topic model visualization specifically requires an older version of Django (1.2.4); newer versions of Django have incompatible APIs.
+
+You may need to manually download certain NLTK corpora (mainly the stopwords corpus and the corpus for the Punkt tokenizer); for this you may use the NLTK Downloader, by opening a Python shell and typing >>> nltk.download()
 
 ## Crawling
 Once you have all the dependencies, you may crawl a collection of documents by going to the package directory (i.e. where README.md is located) and typing
