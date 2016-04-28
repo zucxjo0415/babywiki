@@ -4,5 +4,5 @@ scipy
 Django==1.2.4
 scrapy
 nltk
-nltk.corpus.stopwords
+google
 linereader
